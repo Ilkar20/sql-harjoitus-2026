@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laskutusjarjestelma</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav>
+  <span class="logo">Laskutusjarjestelma</span>
+  <a href="/" data-page="etusivu" onclick="routeNavigate(event, 'etusivu')">Etusivu</a>
+  <a href="/asiakkaat" data-page="asiakkaat" onclick="routeNavigate(event, 'asiakkaat')">Asiakkaat</a>
+  <a href="/tyokohde/uusi" data-page="t1" onclick="routeNavigate(event, 't1')">T1 Työkohde</a>
+  <a href="/tyosuorite/uusi" data-page="t2" onclick="routeNavigate(event, 't2')">T2 Tuntityöt</a>
+  <a href="/lasku/muistutus" data-page="t3" onclick="routeNavigate(event, 't3')">T3 Muistutus</a>
+  <a href="/tarvike/xml" data-page="t5" onclick="routeNavigate(event, 't5')">T5 XML</a>
+  <a href="/raportti/hinta-arvio" data-page="r1" onclick="routeNavigate(event, 'r1')">R1 Arvio</a>
+  <a href="/raportti/tuntityolasku" data-page="r2" onclick="routeNavigate(event, 'r2')">R2 Lasku</a>
+  <a href="/raportti/alennus" data-page="r3" onclick="routeNavigate(event, 'r3')">R3 Alennus</a>
+  <a href="/raportti/urakka" data-page="r4" onclick="routeNavigate(event, 'r4')">R4 Urakka</a>
+  <a href="/urakka/hyvaksy" data-page="r5" onclick="routeNavigate(event, 'r5')">R5 Hyväksy</a>
+  <a href="/raportti/turvallisuus" data-page="r6" onclick="routeNavigate(event, 'r6')">R6 Turvallisuus</a>
+</nav>
+
+<div class="container">
+
+<!-- ETUSIVU -->
+<div id="page-etusivu" class="page active">
+  <h1>Laskutusjarjestelma</h1>
+  <div class="grid3" id="stats"></div>
+  <div class="card mt-16">
+    <h2>Viimeisimmät laskut</h2>
+    <table><thead><tr><th>Lasku</th><th>Asiakas</th><th>Kohde</th><th>Summa</th><th>Eräpäivä</th><th>Tila</th></tr></thead>
+    <tbody id="etusivu-laskut"></tbody></table>
+  </div>
+</div>
+
+<!-- ASIAKKAAT -->
+<div id="page-asiakkaat" class="page">
+  <h1>Asiakkaat</h1>
+  <div class="card">
+    <table>
+      <thead><tr><th>#</th><th>Nimi</th><th>Osoite</th><th>Email</th><th>Puhelin</th></tr></thead>
+      <tbody id="asiakkaat-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- T1: Uusi työkohde -->
+<div id="page-t1" class="page">
+  <h1>T1 — Uusi työkohde</h1>
+  <div class="card">
+    <div id="t1-msg"></div>
+    <label>Asiakas</label>
+    <select id="t1-asiakas"></select>
+    <label>Kohteen osoite</label>
+    <input id="t1-osoite" type="text" placeholder="Esim. Koivutie 3, Lahti">
+    <label>Kuvaus</label>
+    <input id="t1-kuvaus" type="text" placeholder="Esim. Kesämökki">
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="lisaaTyokohde()">Lisää työkohde</button>
+    </div>
+  </div>
+</div>
+
+<!-- T2: Tuntityöt ja tarvikkeet -->
+<div id="page-t2" class="page">
+  <h1>T2 — Tuntityöt ja tarvikkeet</h1>
+  <div class="card">
+    <div id="t2-msg"></div>
+    <div class="grid2">
+      <div>
+        <label>Asiakas</label>
+        <select id="t2-asiakas" onchange="ladaTyokohteet('t2')"></select>
+      </div>
+      <div>
+        <label>Työkohde</label>
+        <select id="t2-tyokohde"></select>
+      </div>
+    </div>
+    <label>Päivämäärä</label>
+    <input id="t2-pvm" type="date">
+    <label>Kuvaus</label>
+    <input id="t2-kuvaus" type="text" placeholder="Esim. Johtojen asennus">
+
+    <h2>Tuntityöt</h2>
+    <div id="t2-tuntityot"></div>
+    <button class="btn btn-success btn-sm mt-16" onclick="lisaaTuntityoRivi()">+ Lisää tuntityö</button>
+
+    <h2>Tarvikkeet</h2>
+    <div id="t2-tarvikkeet"></div>
+    <button class="btn btn-success btn-sm mt-16" onclick="lisaaTarvikeRivi('t2')">+ Lisää tarvike</button>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="tallennaTyosuorite()">Tallenna päivän työt</button>
+    </div>
+  </div>
+</div>
+
+<!-- T3: Muistutuslasku -->
+<div id="page-t3" class="page">
+  <h1>T3 — Muistutuslaskut</h1>
+  <div class="card">
+    <p class="text-muted">Luo muistutuslaskut kaikista maksamattomista laskuista joiden eräpäivä on mennyt ja joista ei ole vielä lähetetty muistutusta.</p>
+    <div class="btn-group">
+      <button class="btn btn-warning" onclick="luoMuistutuslaskut()">Luo muistutuslaskut</button>
+    </div>
+    <div id="t3-tulos" class="mt-16"></div>
+  </div>
+</div>
+
+<!-- T5: XML-hinnasto -->
+<div id="page-t5" class="page">
+  <h1>T5 — XML-hinnasto</h1>
+  <div class="card">
+    <p class="text-muted">Liitä XML-hinnasto alle. Vanhat hinnat arkistoidaan automaattisesti historiatauluun.</p>
+    <label>XML-data</label>
+    <textarea id="t5-xml" rows="12" placeholder='&lt;?xml version="1.0"?&gt;
+&lt;tarvikkeet&gt;
+  &lt;toimittaja&gt;
+    &lt;toim_nimi&gt;Moponet&lt;/toim_nimi&gt;
+  &lt;/toimittaja&gt;
+  &lt;tarvike&gt;
+    &lt;ttiedot&gt;
+      &lt;id&gt;1&lt;/id&gt;
+      &lt;nimi&gt;Sähköjohto&lt;/nimi&gt;
+      &lt;merkki&gt;Moponet&lt;/merkki&gt;
+      &lt;tyyppi&gt;johto&lt;/tyyppi&gt;
+      &lt;hinta&gt;1.10&lt;/hinta&gt;
+      &lt;yksikko&gt;metri&lt;/yksikko&gt;
+    &lt;/ttiedot&gt;
+  &lt;/tarvike&gt;
+&lt;/tarvikkeet&gt;'></textarea>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="paivitaXml()">Päivitä hinnasto</button>
+    </div>
+    <div id="t5-tulos" class="mt-16"></div>
+  </div>
+</div>
+
+<!-- R1: Hinta-arvio -->
+<div id="page-r1" class="page">
+  <h1>R1 — Hinta-arvio</h1>
+  <div class="card">
+    <div class="grid3">
+      <div><label>Suunnittelutunnit (55€/h)</label><input id="r1-suunnittelu" type="number" min="0" value="0"></div>
+      <div><label>Työtunnit (45€/h)</label><input id="r1-tyo" type="number" min="0" value="0"></div>
+      <div><label>Aputyötunnit (35€/h)</label><input id="r1-aputyo" type="number" min="0" value="0"></div>
+    </div>
+    <h2>Tarvikkeet</h2>
+    <div id="r1-tarvikkeet"></div>
+    <button class="btn btn-success btn-sm mt-16" onclick="lisaaTarvikeRivi('r1')">+ Lisää tarvike</button>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="laskeHintaArvio()">Laske arvio</button>
+    </div>
+  </div>
+  <div id="r1-tulos"></div>
+</div>
+
+<!-- R2: Tuntityölasku -->
+<div id="page-r2" class="page">
+  <h1>R2 — Tuntityölasku</h1>
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label>Asiakas</label>
+        <select id="r2-asiakas" onchange="ladaTyokohteet('r2')"></select>
+      </div>
+      <div>
+        <label>Työkohde</label>
+        <select id="r2-tyokohde" onchange="ladaTyosuoritteet('r2')"></select>
+      </div>
+    </div>
+    <label>Eräpäivä</label>
+    <input id="r2-erapvm" type="date">
+    <h2>Valitse laskutettavat työsuoritteet</h2>
+    <div id="r2-tyosuoritteet"></div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="luoTuntityolasku()">Luo lasku</button>
+    </div>
+  </div>
+  <div id="r2-tulos"></div>
+</div>
+
+<!-- R3: Lasku alennuksilla -->
+<div id="page-r3" class="page">
+  <h1>R3 — Lasku alennuksilla</h1>
+  <div class="card">
+    <label>Lasku ID</label>
+    <input id="r3-lasku-id" type="number" placeholder="Syötä laskun numero">
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="haeLasku()">Hae lasku</button>
+    </div>
+  </div>
+  <div id="r3-tulos"></div>
+</div>
+
+<!-- R4: Urakkatarjous -->
+<div id="page-r4" class="page">
+  <h1>R4 — Urakkatarjous</h1>
+  <div class="card">
+    <div id="r4-msg"></div>
+    <div class="grid2">
+      <div>
+        <label>Asiakas</label>
+        <select id="r4-asiakas" onchange="ladaTyokohteet('r4')"></select>
+      </div>
+      <div>
+        <label>Työkohde</label>
+        <select id="r4-tyokohde"></select>
+      </div>
+    </div>
+    <div class="grid2">
+      <div><label>Työn osuus (ilman alv, €)</label><input id="r4-tyo" type="number" min="0" placeholder="852.82"></div>
+      <div><label>Tarvikkeiden osuus (ilman alv, €)</label><input id="r4-tarvike" type="number" min="0" placeholder="331.50"></div>
+    </div>
+    <label>Alennus (%)</label>
+    <input id="r4-alennus" type="number" min="0" max="100" value="0">
+    <h2>Tarvikeluettelo</h2>
+    <div id="r4-tarvikkeet"></div>
+    <button class="btn btn-success btn-sm mt-16" onclick="lisaaTarvikeRivi('r4')">+ Lisää tarvike</button>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="luoUrakkatarjous()">Luo urakkatarjous</button>
+    </div>
+  </div>
+  <div id="r4-tulos"></div>
+</div>
+
+<!-- R5: Hyväksy urakka -->
+<div id="page-r5" class="page">
+  <h1>R5 — Hyväksy urakkatarjous</h1>
+  <div class="card">
+    <label>Urakkatarjous</label>
+    <select id="r5-urakka"></select>
+    <div class="btn-group">
+      <button class="btn btn-success" onclick="hyvaksyUrakka()">Hyväksy ja luo laskut</button>
+    </div>
+    <div id="r5-tulos" class="mt-16"></div>
+  </div>
+</div>
+
+<!-- R6: Turvallisuusraportti -->
+<div id="page-r6" class="page">
+  <h1>R6 — Turvallisuusraportti</h1>
+  <div class="card">
+    <label>Toimittajan nimi</label>
+    <input id="r6-toimittaja" type="text" value="Junk Co">
+    <div class="btn-group">
+      <button class="btn btn-danger" onclick="haeTurvallisuusRaportti()">Hae raportti</button>
+    </div>
+  </div>
+  <div id="r6-tulos"></div>
+</div>
+
+<!-- Laskut -->
+<div id="page-laskut" class="page">
+  <h1>Laskut</h1>
+  <div class="card">
+    <table>
+      <thead><tr><th>#</th><th>Asiakas</th><th>Kohde</th><th>Pvm</th><th>Eräpäivä</th><th>Tyyppi</th><th>Summa</th><th>Tila</th><th></th></tr></thead>
+      <tbody id="laskut-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script src="/js/app.js"></script>
+</body>
+</html>
