@@ -60,22 +60,12 @@ Kurssivaatimuksen mukaisesti:
    - `ssh oma_tuni_tunnus@tie-tkannat.it.tuni.fi`
 2. Tarkista tietokantatiedot:
    - `cat ~/database.txt`
-3. Varmista, että projektitiedostot ovat palvelimella.
-   - Jos kansiota ei löydy (`No such file or directory`), siirrä projekti ensin palvelimelle.
-   - Vaihtoehto A (git): `git clone <repo-url> ~/sql-harjoitus-2026`
-   - Vaihtoehto B (WinSCP): kopioi projektikansio kotihakemistoosi nimellä `sql-harjoitus-2026`
-4. Siirry projektihakemistoon ja tarkista SQL-tiedostot:
-   - `cd ~/sql-harjoitus-2026`
-   - `ls db`
-5. Aja SQL-tiedostot:
+3. Aja SQL-tiedostot:
    - `psql oma_tietokanta_nimi -f db/schema.sql`
    - `psql oma_tietokanta_nimi -f db/seed.sql`
-   - jos et ole projektihakemistossa, käytä absoluuttista polkua:
-     - `psql oma_tietokanta_nimi -f ~/sql-harjoitus-2026/db/schema.sql`
-     - `psql oma_tietokanta_nimi -f ~/sql-harjoitus-2026/db/seed.sql`
-6. Aseta tarvittaessa ympäristömuuttujat:
+4. Aseta tarvittaessa ympäristömuuttujat:
    - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`, `PORT`
-7. Käynnistä sovellus:
+5. Käynnistä sovellus:
    - `npm install`
    - `npm run start`
 
