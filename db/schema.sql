@@ -170,19 +170,19 @@ CREATE TABLE UrakkaLasku (
 CREATE OR REPLACE FUNCTION tarkista_asiakas_luotettavuus()
 RETURNS TRIGGER AS $$
 DECLARE
-    asiakas_id INTEGER;
+    v_asiakas_id INTEGER;
     eraantynyt INTEGER;
     karhu_2v   INTEGER;
     korotus    NUMERIC := 0;
 BEGIN
-    SELECT tk.asiakas_id INTO asiakas_id
+    SELECT tk.asiakas_id INTO v_asiakas_id
     FROM Tyokohde tk WHERE tk.id = NEW.tyokohde_id;
 
     -- Tarkista erääntyneet maksamattomat laskut
     SELECT COUNT(*) INTO eraantynyt
     FROM Lasku l
     JOIN Tyokohde tk ON tk.id = l.tyokohde_id
-    WHERE tk.asiakas_id = asiakas_id
+    WHERE tk.asiakas_id = v_asiakas_id
     AND l.tila IN ('avoin', 'myohassa')
     AND l.erapvm < CURRENT_DATE;
 
@@ -193,7 +193,7 @@ BEGIN
         SELECT COUNT(*) INTO karhu_2v
         FROM Lasku l
         JOIN Tyokohde tk ON tk.id = l.tyokohde_id
-        WHERE tk.asiakas_id = asiakas_id
+        WHERE tk.asiakas_id = v_asiakas_id
         AND l.tyyppi = 'karhu'
         AND l.pvm >= CURRENT_DATE - INTERVAL '2 years';
 
