@@ -1,103 +1,110 @@
-# sql-harjoitus-2026
+# Tietokantaohjelmointi – Harjoitustyö (Kevät 2026)
 
-Laskutusjarjestelma (Node.js + PostgreSQL)
+## 1. Työn kuvaus
+Tämä projekti toteuttaa Tmi Sähkötärskyn laskutus- ja työseurantajärjestelmän.
+Toteutus on tehty JavaScriptilla (Node.js) ja PostgreSQL-tietokannalla.
 
-1. Vaatimukset
-- Node.js 18+ ja npm
-- PostgreSQL 14+ (server)
+Kurssivaatimuksen mukaisesti:
+- ohjelmointikieli: JavaScript (Node.js)
+- tietokanta: PostgreSQL
 
-2. Asennus
-- Avaa PowerShell projektikansioon.
-- Aja komento: npm install
+## 2. Toteutetut toiminnot
 
-3. Tietokannan valmistelu
-Sovellus käyttää näitä asetuksia tiedostossa db/index.js:
-- host: localhost
-- port: 5432
-- database: laskutusjarjestelma
-- user: ympäristömuuttuja DB_USER tai oletus postgres
-- password: ympäristömuuttuja DB_PASS tai tyhjä
+### Tapahtumat
+- T1: uuden työkohteen lisääminen asiakkaalle
+- T2: tuntitöiden ja tarvikkeiden kirjaaminen
+- T3: muistutuslaskujen muodostaminen erääntyneistä laskuista
+- T5: XML-hinnaston tuonti (päivitykset, lisäykset, arkistointi historiaan)
 
-Luo tietokanta laskutusjarjestelma ja aja SQL-tiedostot tässä järjestyksessä:
-- db/schema.sql
-- db/seed.sql
+### Raportit
+- R1: hinta-arvio
+- R2: tuntityölasku
+- R3: lasku alennuksilla
+- R4: urakkatarjous
+- R5: urakkatarjouksen hyväksyntä ja laskujen muodostus
+- R6: turvallisuusraportti (Junk Co)
 
-Jos psql on käytössä, komennot ovat:
-- createdb -U postgres laskutusjarjestelma
-- psql -U postgres -d laskutusjarjestelma -f db/schema.sql
-- psql -U postgres -d laskutusjarjestelma -f db/seed.sql
+### Triggeri
+- T4: asiakkaan luotettavuuden tarkistus urakkatarjousta lisättäessä
+  - 30 % korotus, jos asiakkaalla on erääntyneitä maksamattomia laskuja
+  - 10 % korotus, jos asiakkaalla on karhulasku viimeisen 2 vuoden ajalta
 
-Jos psql ei ole PATH:ssa, käytä pgAdmin Query Toolia:
-- Luo tietokanta nimellä laskutusjarjestelma.
-- Aja db/schema.sql.
-- Aja db/seed.sql.
+## 3. Projektin rakenne
+- [index.js](index.js) – sovelluksen käynnistys
+- [routes/index.js](routes/index.js) – API-reitit
+- [controllers/index.js](controllers/index.js) – liiketoimintalogiikka
+- [db/index.js](db/index.js) – tietokantayhteys
+- [db/schema.sql](db/schema.sql) – skeema, rajoitteet, triggeri
+- [db/seed.sql](db/seed.sql) – esimerkkidata
+- [public/index.html](public/index.html) – käyttöliittymä
+- [public/js/app.js](public/js/app.js) – käyttöliittymälogiikka
+- [DATABASE_SISALTO.md](DATABASE_SISALTO.md) – tietokannan sisältö (SELECT * jokaisesta taulusta)
 
-4. Käynnistys
-- Kehitystilassa: npm run dev
-- Normaalisti: npm run start
+## 4. Sovelluksen ajaminen
 
-Sovellus käynnistyy osoitteeseen:
-- http://localhost:3000
+### 4.1 Paikallisesti
+1. Asenna riippuvuudet:
+   - `npm install`
+2. Luo tietokanta ja tuo taulut sekä data:
+   - `createdb -U postgres laskutusjarjestelma`
+   - `psql -U postgres -d laskutusjarjestelma -f db/schema.sql`
+   - `psql -U postgres -d laskutusjarjestelma -f db/seed.sql`
+3. Käynnistä sovellus:
+   - `npm run dev` (kehitystila)
+   - tai `npm run start`
+4. Avaa selaimessa:
+   - `http://localhost:3000`
 
-4.2 Ohjelman käyttö
-Avaa selaimessa:
-- Paikallisesti: http://localhost:3000
-- Kurssipalvelimella (jos julkaistu sinne): http://tie-tkannat.it.tuni.fi:<portti>
+### 4.2 Kurssipalvelimella (tie-tkannat.it.tuni.fi)
+1. Kirjaudu palvelimelle:
+   - `ssh oma_tuni_tunnus@tie-tkannat.it.tuni.fi`
+2. Tarkista tietokantatiedot:
+   - `cat ~/database.txt`
+3. Varmista, että projektitiedostot ovat palvelimella.
+   - Jos kansiota ei löydy (`No such file or directory`), siirrä projekti ensin palvelimelle.
+   - Vaihtoehto A (git): `git clone <repo-url> ~/sql-harjoitus-2026`
+   - Vaihtoehto B (WinSCP): kopioi projektikansio kotihakemistoosi nimellä `sql-harjoitus-2026`
+4. Siirry projektihakemistoon ja tarkista SQL-tiedostot:
+   - `cd ~/sql-harjoitus-2026`
+   - `ls db`
+5. Aja SQL-tiedostot:
+   - `psql oma_tietokanta_nimi -f db/schema.sql`
+   - `psql oma_tietokanta_nimi -f db/seed.sql`
+   - jos et ole projektihakemistossa, käytä absoluuttista polkua:
+     - `psql oma_tietokanta_nimi -f ~/sql-harjoitus-2026/db/schema.sql`
+     - `psql oma_tietokanta_nimi -f ~/sql-harjoitus-2026/db/seed.sql`
+6. Aseta tarvittaessa ympäristömuuttujat:
+   - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`, `PORT`
+7. Käynnistä sovellus:
+   - `npm install`
+   - `npm run start`
 
-Navigointi tapahtuu päävalikon kautta:
+## 5. API-reitit (tiivistelmä)
+Kaikki reitit alkavat polulla `/api`.
 
-| Sivu | URL | Toiminto |
-| --- | --- | --- |
-| Etusivu | / | Yleiskatsaus ja navigointi |
-| Asiakkaat | /asiakkaat | Asiakasluettelo |
-| Uusi työkohde (T1) | /tyokohde/uusi | Lisää uusi työkohde asiakkaalle |
-| Tuntityöt (T2) | /tyosuorite/uusi | Tallenna päivän tuntityöt ja tarvikkeet |
-| Muistutuslasku (T3) | /lasku/muistutus | Luo muistutuslaskut erääntyneistä |
-| Hinta-arvio (R1) | /raportti/hinta-arvio | Laske hinta-arvio kohteelle |
-| Tuntityölasku (R2) | /raportti/tuntityolasku | Tulosta tuntityölasku |
-| Lasku alennuksilla (R3) | /raportti/alennus | Lasku alennuksilla |
-| Urakkatarjous (R4) | /raportti/urakka | Luo urakkatarjous |
-| Hyväksy urakka (R5) | /urakka/hyvaksy | Hyväksy urakka ja luo laskut |
-| Turvallisuusraportti (R6) | /raportti/turvallisuus | Junk Co -raportti |
-| XML-hinnasto (T5) | /tarvike/xml | Päivitä hinnasto XML-tiedostosta |
+- `GET /api/asiakkaat`
+- `POST /api/t1/tyokohde`
+- `POST /api/t2/tyosuorite`
+- `POST /api/t3/muistutus`
+- `POST /api/t5/xml`
+- `POST /api/r1/hinta-arvio`
+- `POST /api/r2/tuntityolasku`
+- `GET /api/lasku/:id`
+- `POST /api/r4/urakkatarjous`
+- `POST /api/r5/hyvaksy`
+- `GET /api/r6/turvallisuus`
 
-Huomio:
-- Yllä olevat URL-polut ovat käyttöliittymän sivupolkuja.
-- Varsinaiset datakyselyt kulkevat API-reitteihin `/api/...`.
+## 6. Käytetyt työkalut ja versiot
+- Node.js: 16.13.2
+- npm: Node.js:n mukana
+- PostgreSQL: 14+
+- express: ^4.18.2
+- pg: ^8.11.0
+- xml2js: ^0.6.2
 
-5. Vianetsintä
-- Jos saat virheen yhteydessä tietokantaan, tarkista DB_USER ja DB_PASS.
-- Jos portti 3000 on varattu, aseta ympäristömuuttuja PORT ennen käynnistystä.
-- Jos "Uusi työkohde"-kohdassa asiakaslista on tyhjä, PostgreSQL ei yleensä ole käynnissä tai seed-data puuttuu.
+Versiot voi tarkistaa:
+- `node -v`
+- `npm -v`
+- `psql --version`
 
-6. Tietokantajärjestelmät: SQL -kurssin palvelin (tie-tkannat.it.tuni.fi)
-Alla tiivistetty toimintamalli kurssin ohjeen perusteella.
 
-- Palvelin toimii yliopiston sisäverkossa. Kotona tarvitset yleensä VPN-yhteyden (EduVPN).
-- Hae ensin omat tietokantatiedot palvelimella tiedostosta database.txt.
-
-Yhteys palvelimelle ja psql-käyttö:
-- Kirjaudu SSH:lla palvelimelle:
-	- ssh tie-tkannat.it.tuni.fi
-- Tarkista tietokantatiedot:
-	- cat database.txt
-- Avaa psql omaan tietokantaasi:
-	- psql oma_tietokanta_nimi
-
-Ajettava SQL tämän projektin tauluja varten:
-- psql-istunnossa:
-	- \i db/schema.sql
-	- \i db/seed.sql
-- vaihtoehtoisesti komentoriviltä:
-	- psql oma_tietokanta_nimi -f db/schema.sql
-	- psql oma_tietokanta_nimi -f db/seed.sql
-
-Tärkeä huomio tästä projektista:
-- Tämä projekti on Node.js/Express-sovellus.
-- Kurssipalvelin on ensisijaisesti PHP-sivujen ajamiseen public_html-hakemistosta.
-- Node-palvelun jatkuva ajo kurssipalvelimella ei yleensä kuulu perusasetukseen.
-
-Suositeltu tapa yhdistää ohje ja tämä projekti:
-- Käytä kurssipalvelinta SQL-harjoitusten psql-ajoon.
-- Aja tämä Node-sovellus omalla koneella komennolla npm run start.
-- Jos haluat käyttää kurssipalvelimen kantaa tästä sovelluksesta, tarvitset verkkoyhteyden (VPN) ja toimivat yhteysparametrit, jotka kurssi sallii.

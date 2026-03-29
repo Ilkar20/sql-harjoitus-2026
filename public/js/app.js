@@ -299,7 +299,7 @@ async function paivitaXml() {
   const r = await api('POST', '/t5/xml', { xml });
   document.getElementById('t5-tulos').innerHTML = r.error
     ? `<div class="alert alert-error">${r.error}</div>`
-    : `<div class="alert alert-success">Hinnasto päivitetty! Toimittaja: ${r.toimittaja}, päivitetty ${r.paivitetty} tarviketta.</div>`;
+    : `<div class="alert alert-success">Hinnasto päivitetty! Toimittaja: ${r.toimittaja}, päivitetty ${r.paivitetty} tarviketta, poistettu ${r.poistettu || 0} vanhaa tarviketta.</div>`;
 }
 
 // ── R1 ────────────────────────────────────────────────

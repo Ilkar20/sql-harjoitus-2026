@@ -183,7 +183,7 @@ BEGIN
     FROM Lasku l
     JOIN Tyokohde tk ON tk.id = l.tyokohde_id
     WHERE tk.asiakas_id = asiakas_id
-    AND l.tila = 'avoin'
+    AND l.tila IN ('avoin', 'myohassa')
     AND l.erapvm < CURRENT_DATE;
 
     IF eraantynyt > 0 THEN

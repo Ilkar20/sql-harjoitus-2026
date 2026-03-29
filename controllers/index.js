@@ -160,12 +160,15 @@ exports.paivitaXmlHinnasto = async (req, res) => {
     }
 
     const tarvikkeet = parsed.tarvikkeet.tarvike || [];
+    const xmlNimet = [];
+
     for (const t of tarvikkeet) {
       const ttiedot = t.ttiedot[0];
       const nimi = ttiedot.nimi[0];
       const merkki = ttiedot.merkki[0];
       const hinta = parseFloat(ttiedot.hinta[0]);
       const yksikko = ttiedot.yksikko[0];
+      xmlNimet.push(nimi);
 
       const olemassa = await client.query(
         'SELECT * FROM Tarvike WHERE nimi = $1 AND toimittaja_id = $2',
@@ -177,12 +180,19 @@ exports.paivitaXmlHinnasto = async (req, res) => {
         await client.query(
           `INSERT INTO TarvikeHistoria (tarvike_id, nimi, merkki, ostohinta, myyntihinta, alv, pvm_alku, pvm_loppu)
            VALUES ($1,$2,$3,$4,$5,$6,$7,CURRENT_DATE)`,
-          [vanha.id, vanha.nimi, vanha.merkki, vanha.ostohinta, vanha.myyntihinta, vanha.alv,
-           new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString().split('T')[0]]
+          [
+            vanha.id,
+            vanha.nimi,
+            vanha.merkki,
+            vanha.ostohinta,
+            vanha.myyntihinta,
+            vanha.alv,
+            new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          ]
         );
         await client.query(
-          'UPDATE Tarvike SET ostohinta=$1, myyntihinta=$2, merkki=$3 WHERE id=$4',
-          [hinta, +(hinta * 1.25).toFixed(2), merkki, vanha.id]
+          'UPDATE Tarvike SET ostohinta=$1, myyntihinta=$2, merkki=$3, yksikko=$4 WHERE id=$5',
+          [hinta, +(hinta * 1.25).toFixed(2), merkki, yksikko.includes('m') ? 'metri' : 'kpl', vanha.id]
         );
       } else {
         await client.query(
@@ -194,8 +204,39 @@ exports.paivitaXmlHinnasto = async (req, res) => {
       }
     }
 
+    const poistettavat = await client.query(
+      `SELECT t.* FROM Tarvike t
+       WHERE t.toimittaja_id = $1
+       AND ($2::text[] IS NULL OR t.nimi <> ALL($2::text[]))
+       AND NOT EXISTS (SELECT 1 FROM TyosuoriteTarvike tst WHERE tst.tarvike_id = t.id)
+       AND NOT EXISTS (SELECT 1 FROM UrakkatarjousTarvike utt WHERE utt.tarvike_id = t.id)`,
+      [toimittajaId, xmlNimet.length ? xmlNimet : null]
+    );
+
+    for (const vanha of poistettavat.rows) {
+      await client.query(
+        `INSERT INTO TarvikeHistoria (tarvike_id, nimi, merkki, ostohinta, myyntihinta, alv, pvm_alku, pvm_loppu)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,CURRENT_DATE)`,
+        [
+          vanha.id,
+          vanha.nimi,
+          vanha.merkki,
+          vanha.ostohinta,
+          vanha.myyntihinta,
+          vanha.alv,
+          new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        ]
+      );
+      await client.query('DELETE FROM Tarvike WHERE id = $1', [vanha.id]);
+    }
+
     await client.query('COMMIT');
-    res.json({ success: true, toimittaja: toimittajaNimi, paivitetty: tarvikkeet.length });
+    res.json({
+      success: true,
+      toimittaja: toimittajaNimi,
+      paivitetty: tarvikkeet.length,
+      poistettu: poistettavat.rows.length,
+    });
   } catch (e) {
     await client.query('ROLLBACK');
     res.status(500).json({ error: e.message });
